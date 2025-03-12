@@ -18,12 +18,16 @@ namespace Airport_Ticket_Booking_System.Services
 
         private void LoadBookings()
         {
-            if (File.Exists("Data/bookings.csv"))
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "bookings.csv");
+
+            if (File.Exists(filePath))               
             {
-                var lines = File.ReadAllLines("Data/bookings.csv");
+                var lines = File.ReadAllLines("Data/bookings.csv").Skip(1); // Skip header if it exists
                 foreach (var line in lines)
                 {
                     var data = line.Split(',');
+                    if (data.Length < 6) continue; // Ensure data is complete
+
                     bookings.Add(new Booking
                     {
                         BookingId = data[0],
@@ -34,6 +38,10 @@ namespace Airport_Ticket_Booking_System.Services
                         Price = decimal.Parse(data[5])
                     });
                 }
+            }
+            else
+            {
+                Console.WriteLine("\aBookings data file not found.");
             }
         }
 
@@ -66,6 +74,29 @@ namespace Airport_Ticket_Booking_System.Services
             File.WriteAllLines("Data/bookings.csv", bookings.Select(b =>
                 $"{b.BookingId},{b.PassengerName},{b.PassportNumber},{b.FlightNumber},{b.Class},{b.Price}"
             ));
+        }
+
+        public void PrintAllBookings()
+        {
+            string horizontalLine = new string('-', 80);
+
+            if (bookings.Count == 0)
+            {
+                Console.WriteLine("No bookings found.");
+                return;
+            }
+
+            Console.WriteLine("All Bookings:");
+            Console.WriteLine(horizontalLine);
+            Console.WriteLine("| Booking ID | Passenger Name | Passport Number | Flight Number | Class      | Price   |");
+            Console.WriteLine(horizontalLine);
+
+            foreach (var booking in bookings)
+            {
+                Console.WriteLine($"| {booking.BookingId,-10} | {booking.PassengerName,-14} | {booking.PassportNumber,-15} | {booking.FlightNumber,-12} | {booking.Class,-10} | {booking.Price,7:C} |");
+            }
+
+            Console.WriteLine(horizontalLine);
         }
     }
 }
