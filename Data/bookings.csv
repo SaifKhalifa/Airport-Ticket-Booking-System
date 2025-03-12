@@ -1,0 +1,4 @@
+BookingId,PassengerName,PassportNumber,FlightNumber,Class,Price
+a1b2c3d4,John Doe,A1234567,UA101,Economy,500
+e5f6g7h8,Jane Smith,B9876543,QR303,Business,1200
+i9j0k1l2,David Brown,C1357924,EK404,FirstClass,2500
