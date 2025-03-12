@@ -1,9 +1,4 @@
 ﻿using Airport_Ticket_Booking_System.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Airport_Ticket_Booking_System.Services
 {
@@ -18,12 +13,18 @@ namespace Airport_Ticket_Booking_System.Services
 
         private void LoadFlights()
         {
-            if (File.Exists("Data/flights.csv"))
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "flights.csv");
+
+            if (File.Exists(filePath))
             {
-                var lines = File.ReadAllLines("Data/flights.csv");
+                Console.WriteLine("flights data file was found!, Loading flights data...");
+
+                var lines = File.ReadAllLines("Data/flights.csv").Skip(1); // Skip header if it exists
                 foreach (var line in lines)
                 {
                     var data = line.Split(',');
+                    if (data.Length < 9) continue; // Ensure data is complete
+
                     flights.Add(new Flight
                     {
                         FlightNumber = data[0],
@@ -38,6 +39,10 @@ namespace Airport_Ticket_Booking_System.Services
                     });
                 }
             }
+            else
+            {
+                Console.WriteLine("\aFlights data file not found.");
+            }
         }
 
         public List<Flight> SearchFlights(string departureCountry, string destinationCountry, DateTime? departureDate = null)
@@ -47,6 +52,33 @@ namespace Airport_Ticket_Booking_System.Services
                 (string.IsNullOrEmpty(destinationCountry) || f.DestinationCountry.Equals(destinationCountry, StringComparison.OrdinalIgnoreCase)) &&
                 (!departureDate.HasValue || f.DepartureDate.Date == departureDate.Value.Date)
             ).ToList();
+        }
+
+        // New Method: Print all available flights
+        public void PrintAllFlights()
+        {
+            string horizontalLine = new string('-', 80);
+            if (flights.Count == 0)
+            {
+                Console.WriteLine("No flights available.");
+                return;
+            }
+
+            Console.WriteLine("\nAvailable Flights:");
+            Console.WriteLine(horizontalLine);
+            Console.WriteLine("FlightNumber | Departure -> Arrival | Date       | Economy | Business | FirstClass");
+            Console.WriteLine(horizontalLine);
+
+            foreach (var flight in flights)
+            {
+                Console.WriteLine(
+                    $"{flight.FlightNumber,-12} | " +
+                    $"{flight.DepartureAirport} -> {flight.ArrivalAirport,-10} | " +
+                    $"{flight.DepartureDate.ToShortDateString()} | " +
+                    $"${flight.EconomyPrice,-6} | ${flight.BusinessPrice,-8} | ${flight.FirstClassPrice,-9}");
+            }
+
+            Console.WriteLine(horizontalLine);
         }
     }
 }
