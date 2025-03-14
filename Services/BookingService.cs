@@ -161,7 +161,7 @@ namespace Airport_Ticket_Booking_System.Services
 
             if (booking == null)
             {
-                Console.WriteLine("\aBooking not found. Please check the booking ID and try again.");
+                Console.WriteLine("\aPlease check the booking ID and try again.");
                 return;
             }
 
