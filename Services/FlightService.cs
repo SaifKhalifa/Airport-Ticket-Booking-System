@@ -4,7 +4,7 @@ namespace Airport_Ticket_Booking_System.Services
 {
     class FlightService
     {
-        private List<Flight> flights = new List<Flight>();
+        public List<Flight> flights = new List<Flight>();
 
         public FlightService()
         {
