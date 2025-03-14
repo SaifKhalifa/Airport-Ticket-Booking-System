@@ -45,16 +45,40 @@ namespace Airport_Ticket_Booking_System.Services
             }
         }
 
-        public void BookFlight(Passenger passenger, Flight flight, string flightClass)
+        public void BookFlight(Passenger passenger, FlightService flightService, int flightClassNumber, string flightNumber)
         {
-            decimal price = flightClass switch
-            {
-                "Economy" => flight.EconomyPrice,
-                "Business" => flight.BusinessPrice,
-                "FirstClass" => flight.FirstClassPrice,
-                _ => throw new ArgumentException("Invalid class type")
-            };
+            // Find the flight by flight number
+            var flight = flightService.flights.FirstOrDefault(f => f.FlightNumber.Equals(flightNumber, StringComparison.OrdinalIgnoreCase));
 
+            if (flight == null)
+            {
+                Console.WriteLine("\aFlight not found. Please check the flight number and try again.");
+                return;
+            }
+
+            // Determine the price based on the flight class number
+            decimal price;
+            string flightClass;
+            switch (flightClassNumber)
+            {
+                case 1:
+                    flightClass = "Economy";
+                    price = flight.EconomyPrice;
+                    break;
+                case 2:
+                    flightClass = "Business";
+                    price = flight.BusinessPrice;
+                    break;
+                case 3:
+                    flightClass = "FirstClass";
+                    price = flight.FirstClassPrice;
+                    break;
+                default:
+                    Console.WriteLine("Invalid class type. Please choose 1 for Economy, 2 for Business, or 3 for First Class.");
+                    return;
+            }
+
+            // Create a new booking
             var booking = new Booking
             {
                 BookingId = Guid.NewGuid().ToString(),
@@ -65,8 +89,11 @@ namespace Airport_Ticket_Booking_System.Services
                 Price = price
             };
 
+            // Add the booking to the list and save
             bookings.Add(booking);
             SaveBookings();
+
+            Console.WriteLine($"Booking successful! Booking ID: {booking.BookingId}");
         }
 
         private void SaveBookings()
