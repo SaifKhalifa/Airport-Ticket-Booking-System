@@ -171,5 +171,87 @@ namespace Airport_Ticket_Booking_System.Services
 
             Console.WriteLine(horizontalLine);
         }
+
+        public void ImportFlightsFromCsv()
+        {
+            Console.WriteLine("Enter the path to the CSV file to import flights:");
+            string importFilePath = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(importFilePath) || !File.Exists(importFilePath))
+            {
+                Console.WriteLine("\aInvalid file path or file does not exist.");
+                return;
+            }
+
+            try
+            {
+                var lines = File.ReadAllLines(importFilePath).Skip(1); // Skip header if it exists
+                var newFlights = new List<Flight>();
+
+                foreach (var line in lines)
+                {
+                    var data = line.Split(',');
+                    if (data.Length < 9) continue; // Ensure data is complete
+
+                    newFlights.Add(new Flight
+                    {
+                        FlightNumber = data[0],
+                        DepartureCountry = data[1],
+                        DestinationCountry = data[2],
+                        DepartureAirport = data[3],
+                        ArrivalAirport = data[4],
+                        DepartureDate = DateTime.Parse(data[5]),
+                        EconomyPrice = decimal.Parse(data[6]),
+                        BusinessPrice = decimal.Parse(data[7]),
+                        FirstClassPrice = decimal.Parse(data[8])
+                    });
+                }
+
+                if (newFlights.Count == 0)
+                {
+                    Console.WriteLine("No valid flights found in the file.");
+                    return;
+                }
+
+                // Append new flights to the existing flights list
+                flights.AddRange(newFlights);
+
+                // Save the updated flights to the existing CSV file
+                SaveFlightsToCsv();
+
+                Console.WriteLine($"{newFlights.Count} flights imported successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\aAn error occurred while importing flights: {ex.Message}");
+            }
+        }
+
+        private void SaveFlightsToCsv()
+        {
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "flights.csv");
+
+            try
+            {
+                // Write the header if the file doesn't exist
+                if (!File.Exists(filePath))
+                {
+                    File.WriteAllText(filePath, "FlightNumber,DepartureCountry,DestinationCountry,DepartureAirport,ArrivalAirport,DepartureDate,EconomyPrice,BusinessPrice,FirstClassPrice\n");
+                }
+
+                // Append the new flights to the file
+                using (var writer = new StreamWriter(filePath, true)) // Append mode
+                {
+                    foreach (var flight in flights)
+                    {
+                        writer.WriteLine($"{flight.FlightNumber},{flight.DepartureCountry},{flight.DestinationCountry},{flight.DepartureAirport},{flight.ArrivalAirport},{flight.DepartureDate:yyyy-MM-dd},{flight.EconomyPrice},{flight.BusinessPrice},{flight.FirstClassPrice}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\aAn error occurred while saving flights: {ex.Message}");
+            }
+        }
     }
 }
