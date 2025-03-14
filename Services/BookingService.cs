@@ -98,9 +98,28 @@ namespace Airport_Ticket_Booking_System.Services
 
         private void SaveBookings()
         {
-            File.WriteAllLines("Data/bookings.csv", bookings.Select(b =>
-                $"{b.BookingId},{b.PassengerName},{b.PassportNumber},{b.FlightNumber},{b.Class},{b.Price}"
-            ));
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "bookings.csv");
+
+            try
+            {
+                // Check if the file exists
+                if (!File.Exists(filePath))
+                {
+                    Console.WriteLine("\aError: The bookings file was not found.");
+                    return;
+                }
+
+                // Write all bookings to the file
+                File.WriteAllLines(filePath, bookings.Select(b =>
+                    $"{b.BookingId},{b.PassengerName},{b.PassportNumber},{b.FlightNumber},{b.Class},{b.Price}"
+                ));
+
+                Console.WriteLine("Bookings saved successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\aAn error occurred while saving bookings: {ex.Message}");
+            }
         }
 
         public void PrintAllBookings()
