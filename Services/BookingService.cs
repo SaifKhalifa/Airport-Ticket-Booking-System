@@ -153,5 +153,78 @@ namespace Airport_Ticket_Booking_System.Services
 
             Console.WriteLine(horizontalLine);
         }
+
+        public void EditBooking(string bookingId, FlightService flightService, int newFlightClassNumber)
+        {
+            // Find the booking by booking ID
+            var booking = bookings.FirstOrDefault(b => b.BookingId.Equals(bookingId, StringComparison.OrdinalIgnoreCase));
+
+            if (booking == null)
+            {
+                Console.WriteLine("\aBooking not found. Please check the booking ID and try again.");
+                return;
+            }
+
+            // Find the flight associated with the booking
+            var flight = flightService.flights
+                .FirstOrDefault(f => f.FlightNumber.Equals(booking.FlightNumber, StringComparison.OrdinalIgnoreCase));
+
+            if (flight == null)
+            {
+                Console.WriteLine("\aFlight associated with this booking no longer exists.");
+                return;
+            }
+
+            // Determine the new price and class based on the new flight class number
+            decimal newPrice;
+            string newFlightClass;
+            switch (newFlightClassNumber)
+            {
+                case 1:
+                    newFlightClass = "Economy";
+                    newPrice = flight.EconomyPrice;
+                    break;
+                case 2:
+                    newFlightClass = "Business";
+                    newPrice = flight.BusinessPrice;
+                    break;
+                case 3:
+                    newFlightClass = "FirstClass";
+                    newPrice = flight.FirstClassPrice;
+                    break;
+                default:
+                    Console.WriteLine("Invalid class type. Please choose 1 for Economy, 2 for Business, or 3 for First Class.");
+                    return;
+            }
+
+            // Update the booking
+            booking.Class = newFlightClass;
+            booking.Price = newPrice;
+
+            // Save the updated bookings to the file
+            SaveBookings();
+
+            Console.WriteLine($"Booking updated successfully! New class: {newFlightClass}, New price: {newPrice:C}");
+        }
+
+        public void CancelBooking(string bookingId)
+        {
+            // Find the booking by booking ID
+            var booking = bookings.FirstOrDefault(b => b.BookingId.Equals(bookingId, StringComparison.OrdinalIgnoreCase));
+
+            if (booking == null)
+            {
+                Console.WriteLine("\aBooking not found. Please check the booking ID and try again.");
+                return;
+            }
+
+            // Remove the booking from the list
+            bookings.Remove(booking);
+
+            // Save the updated bookings to the file
+            SaveBookings();
+
+            Console.WriteLine($"Booking with ID '{bookingId}', canceled successfully!");
+        }
     }
 }
