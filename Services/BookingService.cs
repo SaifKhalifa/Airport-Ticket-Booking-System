@@ -125,5 +125,33 @@ namespace Airport_Ticket_Booking_System.Services
 
             Console.WriteLine(horizontalLine);
         }
+
+        public void PrintBookingsForPassenger(Passenger passenger)
+        {
+            string horizontalLine = new string('-', 80);
+
+            // Filter bookings for the provided passenger
+            var passengerBookings = bookings
+                .Where(b => b.PassportNumber.Equals(passenger.PassportNumber, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (passengerBookings.Count == 0)
+            {
+                Console.WriteLine($"No bookings found for passenger: {passenger.Name} (Passport: {passenger.PassportNumber}).");
+                return;
+            }
+
+            Console.WriteLine($"Bookings for Passenger: {passenger.Name} (Passport: {passenger.PassportNumber})");
+            Console.WriteLine(horizontalLine);
+            Console.WriteLine("| Booking ID | Passenger Name | Passport Number | Flight Number | Class      | Price   |");
+            Console.WriteLine(horizontalLine);
+
+            foreach (var booking in passengerBookings)
+            {
+                Console.WriteLine($"| {booking.BookingId} | {booking.PassengerName} | {booking.PassportNumber} | {booking.FlightNumber} | {booking.Class} | {booking.Price:C} |");
+            }
+
+            Console.WriteLine(horizontalLine);
+        }
     }
 }
