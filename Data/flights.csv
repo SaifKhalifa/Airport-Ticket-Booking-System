@@ -1,0 +1,6 @@
+FlightNumber,DepartureCountry,DestinationCountry,DepartureAirport,ArrivalAirport,DepartureDate,EconomyPrice,BusinessPrice,FirstClassPrice
+UA101,USA,UK,JFK,LHR,2025-03-15,500,1000,2000
+BA202,USA,UK,LAX,LGW,2025-04-01,450,950,1900
+QR303,Qatar,Germany,DOH,FRA,2025-03-20,600,1200,2200
+EK404,UAE,USA,DXB,JFK,2025-05-10,700,1300,2500
+AF505,France,Italy,CDG,FCO,2025-06-01,350,750,1500
