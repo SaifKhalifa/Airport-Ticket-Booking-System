@@ -1,4 +1,9 @@
 ﻿using Airport_Ticket_Booking_System.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Airport_Ticket_Booking_System.Services
 {
@@ -8,10 +13,10 @@ namespace Airport_Ticket_Booking_System.Services
 
         public FlightService()
         {
-            LoadFlights();
+            Task.Run(() => LoadFlights()).Wait(); // Enforced sync call due to naming restriction
         }
 
-        private void LoadFlights()
+        private async Task LoadFlights()
         {
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "flights.csv");
 
@@ -19,11 +24,11 @@ namespace Airport_Ticket_Booking_System.Services
             {
                 Console.WriteLine("flights data file was found!, Loading flights data...");
 
-                var lines = File.ReadAllLines("Data/flights.csv").Skip(1); // Skip header if it exists
+                var lines = (await File.ReadAllLinesAsync(filePath)).Skip(1); // Skip header
                 foreach (var line in lines)
                 {
                     var data = line.Split(',');
-                    if (data.Length < 9) continue; // Ensure data is complete
+                    if (data.Length < 9) continue;
 
                     flights.Add(new Flight
                     {
@@ -55,27 +60,18 @@ namespace Airport_Ticket_Booking_System.Services
             decimal? maxPrice = null)
         {
             return flights.Where(f =>
-                (string.IsNullOrEmpty(departureCountry) || f.DepartureCountry.Equals(departureCountry, StringComparison.OrdinalIgnoreCase)) 
-                &&
-                (string.IsNullOrEmpty(destinationCountry) || f.DestinationCountry.Equals(destinationCountry, StringComparison.OrdinalIgnoreCase)) 
-                &&
-                (!departureDate.HasValue || f.DepartureDate.Date == departureDate.Value.Date) 
-                &&
-                (string.IsNullOrEmpty(departureAirport) || f.DepartureAirport.Equals(departureAirport, StringComparison.OrdinalIgnoreCase)) 
-                &&
-                (string.IsNullOrEmpty(arrivalAirport) || f.ArrivalAirport.Equals(arrivalAirport, StringComparison.OrdinalIgnoreCase)) 
-                &&
-                (string.IsNullOrEmpty(flightClass)
-                || 
-                (flightClass.ToLower() == "economy")
-                ||
-                (flightClass.ToLower() == "business")
-                ||
-                (flightClass.ToLower() == "first class"))
-                &&
+                (string.IsNullOrEmpty(departureCountry) || f.DepartureCountry.Equals(departureCountry, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(destinationCountry) || f.DestinationCountry.Equals(destinationCountry, StringComparison.OrdinalIgnoreCase)) &&
+                (!departureDate.HasValue || f.DepartureDate.Date == departureDate.Value.Date) &&
+                (string.IsNullOrEmpty(departureAirport) || f.DepartureAirport.Equals(departureAirport, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(arrivalAirport) || f.ArrivalAirport.Equals(arrivalAirport, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(flightClass) ||
+                 (flightClass.ToLower() == "economy") ||
+                 (flightClass.ToLower() == "business") ||
+                 (flightClass.ToLower() == "first class")) &&
                 (!maxPrice.HasValue || (flightClass.ToLower() == "economy" && f.EconomyPrice <= maxPrice) ||
-                                      (flightClass.ToLower() == "business" && f.BusinessPrice <= maxPrice) ||
-                                      (flightClass.ToLower() == "first class" && f.FirstClassPrice <= maxPrice))
+                                     (flightClass.ToLower() == "business" && f.BusinessPrice <= maxPrice) ||
+                                     (flightClass.ToLower() == "first class" && f.FirstClassPrice <= maxPrice))
             ).ToList();
         }
 
@@ -114,7 +110,6 @@ namespace Airport_Ticket_Booking_System.Services
                 maxPrice = parsedPrice;
             }
 
-            // Call the SearchFlights method
             var results = flightService.SearchFlights(
                 departureCountry,
                 destinationCountry,
@@ -125,7 +120,6 @@ namespace Airport_Ticket_Booking_System.Services
                 maxPrice
             );
 
-            // Display results
             if (results.Any())
             {
                 Console.WriteLine("Search Results:");
@@ -144,7 +138,6 @@ namespace Airport_Ticket_Booking_System.Services
                 Console.WriteLine("No flights found matching your criteria.");
             }
         }
-       
 
         public void PrintAllFlights()
         {
@@ -172,7 +165,7 @@ namespace Airport_Ticket_Booking_System.Services
             Console.WriteLine(horizontalLine);
         }
 
-        public void ImportFlightsFromCsv()
+        public async void ImportFlightsFromCsv()
         {
             Console.WriteLine("Enter the path to the CSV file to import flights:");
             string importFilePath = Console.ReadLine();
@@ -185,13 +178,13 @@ namespace Airport_Ticket_Booking_System.Services
 
             try
             {
-                var lines = File.ReadAllLines(importFilePath).Skip(1); // Skip header if it exists
+                var lines = (await File.ReadAllLinesAsync(importFilePath)).Skip(1);
                 var newFlights = new List<Flight>();
 
                 foreach (var line in lines)
                 {
                     var data = line.Split(',');
-                    if (data.Length < 9) continue; // Ensure data is complete
+                    if (data.Length < 9) continue;
 
                     newFlights.Add(new Flight
                     {
@@ -213,11 +206,9 @@ namespace Airport_Ticket_Booking_System.Services
                     return;
                 }
 
-                // Append new flights to the existing flights list
                 flights.AddRange(newFlights);
 
-                // Save the updated flights to the existing CSV file
-                SaveFlightsToCsv();
+                await SaveFlightsToCsv();
 
                 Console.WriteLine($"{newFlights.Count} flights imported successfully.");
             }
@@ -227,26 +218,22 @@ namespace Airport_Ticket_Booking_System.Services
             }
         }
 
-        private void SaveFlightsToCsv()
+        private async Task SaveFlightsToCsv()
         {
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "flights.csv");
 
             try
             {
-                // Write the header if the file doesn't exist
-                if (!File.Exists(filePath))
+                var lines = new List<string>
                 {
-                    File.WriteAllText(filePath, "FlightNumber,DepartureCountry,DestinationCountry,DepartureAirport,ArrivalAirport,DepartureDate,EconomyPrice,BusinessPrice,FirstClassPrice\n");
-                }
+                    "FlightNumber,DepartureCountry,DestinationCountry,DepartureAirport,ArrivalAirport,DepartureDate,EconomyPrice,BusinessPrice,FirstClassPrice"
+                };
 
-                // Append the new flights to the file
-                using (var writer = new StreamWriter(filePath, true)) // Append mode
-                {
-                    foreach (var flight in flights)
-                    {
-                        writer.WriteLine($"{flight.FlightNumber},{flight.DepartureCountry},{flight.DestinationCountry},{flight.DepartureAirport},{flight.ArrivalAirport},{flight.DepartureDate:yyyy-MM-dd},{flight.EconomyPrice},{flight.BusinessPrice},{flight.FirstClassPrice}");
-                    }
-                }
+                lines.AddRange(flights.Select(f =>
+                    $"{f.FlightNumber},{f.DepartureCountry},{f.DestinationCountry},{f.DepartureAirport},{f.ArrivalAirport},{f.DepartureDate:yyyy-MM-dd},{f.EconomyPrice},{f.BusinessPrice},{f.FirstClassPrice}"
+                ));
+
+                await File.WriteAllLinesAsync(filePath, lines);
             }
             catch (Exception ex)
             {
