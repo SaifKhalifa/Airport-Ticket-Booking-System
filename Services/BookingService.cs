@@ -10,7 +10,7 @@ internal class BookingService
 {
     private List<Booking> _bookings = new List<Booking>();
 
-    private BookingService() { }
+    public BookingService() { }
 
     // Factory method to create instance with async file loading
     public static async Task<BookingService> CreateAsync()
