@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Airport_Ticket_Booking_System.Services;
 internal class BookingService
 {
-    private List<Booking> bookings = new List<Booking>();
+    private List<Booking> _bookings = new List<Booking>();
 
     private BookingService() { }
 
@@ -32,7 +32,7 @@ internal class BookingService
                 var data = line.Split(',');
                 if (data.Length < 6) continue;
 
-                bookings.Add(new Booking
+                _bookings.Add(new Booking
                 {
                     BookingId = data[0],
                     PassengerName = data[1],
@@ -90,7 +90,7 @@ internal class BookingService
             Price = price
         };
 
-        bookings.Add(booking);
+        _bookings.Add(booking);
         await SaveBookings();
 
         Console.WriteLine($"Booking successful! Booking ID: {booking.BookingId}");
@@ -107,7 +107,7 @@ internal class BookingService
                 "BookingId,PassengerName,PassportNumber,FlightNumber,Class,Price"
             };
 
-            lines.AddRange(bookings.Select(b =>
+            lines.AddRange(_bookings.Select(b =>
                 $"{b.BookingId},{b.PassengerName},{b.PassportNumber},{b.FlightNumber},{b.Class},{b.Price}"
             ));
 
@@ -125,7 +125,7 @@ internal class BookingService
     {
         string horizontalLine = new string('-', 80);
 
-        if (bookings.Count == 0)
+        if (_bookings.Count == 0)
         {
             Console.WriteLine("No bookings found.");
             return;
@@ -136,7 +136,7 @@ internal class BookingService
         Console.WriteLine("| Booking ID | Passenger Name | Passport Number | Flight Number | Class      | Price   |");
         Console.WriteLine(horizontalLine);
 
-        foreach (var booking in bookings)
+        foreach (var booking in _bookings)
         {
             Console.WriteLine($"| {booking.BookingId,-10} | {booking.PassengerName,-14} | {booking.PassportNumber,-15} | {booking.FlightNumber,-12} | {booking.Class,-10} | {booking.Price,7:C} |");
         }
@@ -148,7 +148,7 @@ internal class BookingService
     {
         string horizontalLine = new string('-', 80);
 
-        var passengerBookings = bookings
+        var passengerBookings = _bookings
             .Where(b => b.PassportNumber.Equals(passenger.PassportNumber, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -173,7 +173,7 @@ internal class BookingService
 
     public async Task EditBooking(string bookingId, FlightService flightService, int newFlightClassNumber)
     {
-        var booking = bookings.FirstOrDefault(b => b.BookingId.Equals(bookingId, StringComparison.OrdinalIgnoreCase));
+        var booking = _bookings.FirstOrDefault(b => b.BookingId.Equals(bookingId, StringComparison.OrdinalIgnoreCase));
 
         if (booking == null)
         {
@@ -221,7 +221,7 @@ internal class BookingService
 
     public async Task CancelBooking(string bookingId)
     {
-        var booking = bookings.FirstOrDefault(b => b.BookingId.Equals(bookingId, StringComparison.OrdinalIgnoreCase));
+        var booking = _bookings.FirstOrDefault(b => b.BookingId.Equals(bookingId, StringComparison.OrdinalIgnoreCase));
 
         if (booking == null)
         {
@@ -229,7 +229,7 @@ internal class BookingService
             return;
         }
 
-        bookings.Remove(booking);
+        _bookings.Remove(booking);
 
         await SaveBookings();
 
