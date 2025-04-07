@@ -1,8 +1,8 @@
 ﻿using Airport_Ticket_Booking_System.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Airport_Ticket_Booking_System.Services
@@ -11,22 +11,27 @@ namespace Airport_Ticket_Booking_System.Services
     {
         private List<Booking> bookings = new List<Booking>();
 
-        public BookingService()
+        private BookingService() { }
+
+        // Factory method to create instance with async file loading
+        public static async Task<BookingService> CreateAsync()
         {
-            LoadBookings();
+            var service = new BookingService();
+            await service.LoadBookings();
+            return service;
         }
 
-        private void LoadBookings()
+        private async Task LoadBookings()
         {
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "bookings.csv");
 
-            if (File.Exists(filePath))               
+            if (File.Exists(filePath))
             {
-                var lines = File.ReadAllLines("Data/bookings.csv").Skip(1); // Skip header if it exists
+                var lines = (await File.ReadAllLinesAsync(filePath)).Skip(1);
                 foreach (var line in lines)
                 {
                     var data = line.Split(',');
-                    if (data.Length < 6) continue; // Ensure data is complete
+                    if (data.Length < 6) continue;
 
                     bookings.Add(new Booking
                     {
@@ -45,9 +50,8 @@ namespace Airport_Ticket_Booking_System.Services
             }
         }
 
-        public void BookFlight(Passenger passenger, FlightService flightService, int flightClassNumber, string flightNumber)
+        public async Task BookFlight(Passenger passenger, FlightService flightService, int flightClassNumber, string flightNumber)
         {
-            // Find the flight by flight number
             var flight = flightService.flights.FirstOrDefault(f => f.FlightNumber.Equals(flightNumber, StringComparison.OrdinalIgnoreCase));
 
             if (flight == null)
@@ -56,7 +60,6 @@ namespace Airport_Ticket_Booking_System.Services
                 return;
             }
 
-            // Determine the price based on the flight class number
             decimal price;
             string flightClass;
             switch (flightClassNumber)
@@ -78,7 +81,6 @@ namespace Airport_Ticket_Booking_System.Services
                     return;
             }
 
-            // Create a new booking
             var booking = new Booking
             {
                 BookingId = Guid.NewGuid().ToString(),
@@ -89,30 +91,28 @@ namespace Airport_Ticket_Booking_System.Services
                 Price = price
             };
 
-            // Add the booking to the list and save
             bookings.Add(booking);
-            SaveBookings();
+            await SaveBookings();
 
             Console.WriteLine($"Booking successful! Booking ID: {booking.BookingId}");
         }
 
-        private void SaveBookings()
+        private async Task SaveBookings()
         {
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "bookings.csv");
 
             try
             {
-                // Check if the file exists
-                if (!File.Exists(filePath))
+                var lines = new List<string>
                 {
-                    Console.WriteLine("\aError: The bookings file was not found.");
-                    return;
-                }
+                    "BookingId,PassengerName,PassportNumber,FlightNumber,Class,Price"
+                };
 
-                // Write all bookings to the file
-                File.WriteAllLines(filePath, bookings.Select(b =>
+                lines.AddRange(bookings.Select(b =>
                     $"{b.BookingId},{b.PassengerName},{b.PassportNumber},{b.FlightNumber},{b.Class},{b.Price}"
                 ));
+
+                await File.WriteAllLinesAsync(filePath, lines);
 
                 Console.WriteLine("Bookings saved successfully.");
             }
@@ -149,7 +149,6 @@ namespace Airport_Ticket_Booking_System.Services
         {
             string horizontalLine = new string('-', 80);
 
-            // Filter bookings for the provided passenger
             var passengerBookings = bookings
                 .Where(b => b.PassportNumber.Equals(passenger.PassportNumber, StringComparison.OrdinalIgnoreCase))
                 .ToList();
@@ -173,9 +172,8 @@ namespace Airport_Ticket_Booking_System.Services
             Console.WriteLine(horizontalLine);
         }
 
-        public void EditBooking(string bookingId, FlightService flightService, int newFlightClassNumber)
+        public async Task EditBooking(string bookingId, FlightService flightService, int newFlightClassNumber)
         {
-            // Find the booking by booking ID
             var booking = bookings.FirstOrDefault(b => b.BookingId.Equals(bookingId, StringComparison.OrdinalIgnoreCase));
 
             if (booking == null)
@@ -184,7 +182,6 @@ namespace Airport_Ticket_Booking_System.Services
                 return;
             }
 
-            // Find the flight associated with the booking
             var flight = flightService.flights
                 .FirstOrDefault(f => f.FlightNumber.Equals(booking.FlightNumber, StringComparison.OrdinalIgnoreCase));
 
@@ -194,7 +191,6 @@ namespace Airport_Ticket_Booking_System.Services
                 return;
             }
 
-            // Determine the new price and class based on the new flight class number
             decimal newPrice;
             string newFlightClass;
             switch (newFlightClassNumber)
@@ -216,19 +212,16 @@ namespace Airport_Ticket_Booking_System.Services
                     return;
             }
 
-            // Update the booking
             booking.Class = newFlightClass;
             booking.Price = newPrice;
 
-            // Save the updated bookings to the file
-            SaveBookings();
+            await SaveBookings();
 
             Console.WriteLine($"Booking updated successfully! New class: {newFlightClass}, New price: {newPrice:C}");
         }
 
-        public void CancelBooking(string bookingId)
+        public async Task CancelBooking(string bookingId)
         {
-            // Find the booking by booking ID
             var booking = bookings.FirstOrDefault(b => b.BookingId.Equals(bookingId, StringComparison.OrdinalIgnoreCase));
 
             if (booking == null)
@@ -237,11 +230,9 @@ namespace Airport_Ticket_Booking_System.Services
                 return;
             }
 
-            // Remove the booking from the list
             bookings.Remove(booking);
 
-            // Save the updated bookings to the file
-            SaveBookings();
+            await SaveBookings();
 
             Console.WriteLine($"Booking with ID '{bookingId}', canceled successfully!");
         }
