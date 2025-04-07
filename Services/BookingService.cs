@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Airport_Ticket_Booking_System.Services;
-class BookingService
+internal class BookingService
 {
     private List<Booking> bookings = new List<Booking>();
 

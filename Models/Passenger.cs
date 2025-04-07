@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Airport_Ticket_Booking_System.Models;
-class Passenger
+internal class Passenger
 {
     public string Name { get; set; }
     public string PassportNumber { get; set; }

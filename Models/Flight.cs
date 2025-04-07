@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Airport_Ticket_Booking_System.Models;
-class Flight
+internal class Flight
 {
     public string FlightNumber { get; set; }
     public string DepartureCountry { get; set; }
