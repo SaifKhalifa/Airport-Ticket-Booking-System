@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Airport_Ticket_Booking_System.Models
+namespace Airport_Ticket_Booking_System.Models;
+class Passenger
 {
-    class Passenger
-    {
-        public string Name { get; set; }
-        public string PassportNumber { get; set; }
-    }
+    public string Name { get; set; }
+    public string PassportNumber { get; set; }
 }
