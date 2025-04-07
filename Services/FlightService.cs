@@ -50,12 +50,12 @@ internal class FlightService
     }
 
     public List<Flight> SearchFlights(
-        string departureCountry = null,
-        string destinationCountry = null,
+        string? departureCountry = null,
+        string? destinationCountry = null,
         DateTime? departureDate = null,
-        string departureAirport = null,
-        string arrivalAirport = null,
-        string flightClass = null,
+        string? departureAirport = null,
+        string? arrivalAirport = null,
+        string? flightClass = null,
         decimal? maxPrice = null)
     {
         return flights.Where(f =>
