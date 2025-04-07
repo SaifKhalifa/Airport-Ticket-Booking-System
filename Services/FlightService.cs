@@ -81,10 +81,10 @@ internal class FlightService
         Console.WriteLine("Enter search parameters (leave blank to skip):");
 
         Console.Write("Departure Country: ");
-        string departureCountry = Console.ReadLine();
+        string? departureCountry = Console.ReadLine();
 
         Console.Write("Destination Country: ");
-        string destinationCountry = Console.ReadLine();
+        string? destinationCountry = Console.ReadLine();
 
         Console.Write("Departure Date (yyyy-MM-dd): ");
         DateTime? departureDate = null;
@@ -94,13 +94,13 @@ internal class FlightService
         }
 
         Console.Write("Departure Airport: ");
-        string departureAirport = Console.ReadLine();
+        string? departureAirport = Console.ReadLine();
 
         Console.Write("Arrival Airport: ");
-        string arrivalAirport = Console.ReadLine();
+        string? arrivalAirport = Console.ReadLine();
 
         Console.Write("Class (Economy, Business, First Class): ");
-        string flightClass = Console.ReadLine();
+        string? flightClass = Console.ReadLine();
 
         Console.Write("Maximum Price: ");
         decimal? maxPrice = null;
